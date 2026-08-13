@@ -1,201 +1,150 @@
-import os
-import requests
-import urllib.parse
-from kivy.lang import Builder
-from kivy.clock import Clock
-from kivy.core.clipboard import Clipboard
 from kivymd.app import MDApp
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.button import MDFlatButton
-from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
-from kivymd.uix.fitimage import FitImage
-
-KV = '''
-MDScreen:
-    md_bg_color: 0.07, 0.08, 0.1, 1
-
-    MDBoxLayout:
-        orientation: 'vertical'
-        padding: dp(15)
-        spacing: dp(12)
-
-        MDLabel:
-            text: "INVESTOR TRADER PANEL"
-            font_style: "H6"
-            bold: True
-            halign: "center"
-            theme_text_color: "Custom"
-            text_color: 0, 0.9, 1, 1
-            size_hint_y: None
-            height: self.texture_size[1]
-
-        # Gold Card
-        MDCard:
-            orientation: 'vertical'
-            size_hint_y: None
-            height: dp(80)
-            padding: dp(10)
-            radius: [12]
-            md_bg_color: 0.11, 0.13, 0.17, 1
-            line_color: 1, 0.84, 0, 1
-
-            MDLabel:
-                text: "GOLD (XAU/USD) REAL-TIME"
-                font_style: "Caption"
-                halign: "center"
-                theme_text_color: "Custom"
-                text_color: 0.6, 0.65, 0.7, 1
-
-            MDLabel:
-                id: gold_price_lbl
-                text: "$2,400.00"
-                font_style: "H5"
-                bold: True
-                halign: "center"
-                theme_text_color: "Custom"
-                text_color: 1, 0.84, 0, 1
-
-        # Data Metrics List
-        MDScrollView:
-            MDBoxLayout:
-                id: metrics_box
-                orientation: 'vertical'
-                spacing: dp(10)
-                size_hint_y: None
-                height: self.minimum_height
-
-        # Action Buttons
-        MDBoxLayout:
-            size_hint_y: None
-            height: dp(50)
-            spacing: dp(10)
-
-            MDRaisedButton:
-                text: "➕ Add Funds"
-                md_bg_color: 0.3, 0.69, 0.31, 1
-                size_hint_x: 0.5
-                on_release: app.show_deposit_dialog()
-
-            MDRaisedButton:
-                text: "📜 Rules PDF"
-                md_bg_color: 0, 0.9, 1, 1
-                text_color: 0, 0, 0, 1
-                size_hint_x: 0.5
-                on_release: app.open_rules_pdf()
-
-        # Footer Instruction
-        MDCard:
-            size_hint_y: None
-            height: dp(75)
-            padding: dp(8)
-            radius: [8]
-            md_bg_color: 0.07, 0.08, 0.1, 1
-
-            MDLabel:
-                text: "⚠️ IMPORTANT INSTRUCTIONS:\\n• Equity updates automatically from MT5 core server.\\n• Withdrawals processed within 24 business hours."
-                font_style: "Caption"
-                theme_text_color: "Custom"
-                text_color: 0.45, 0.48, 0.52, 1
-
-        MDLabel:
-            text: "⚡ Design by Ahmsxtrade"
-            font_style: "Caption"
-            bold: True
-            halign: "center"
-            theme_text_color: "Custom"
-            text_color: 1, 0.84, 0, 1
-            size_hint_y: None
-            height: self.texture_size[1]
-'''
+from kivymd.uix.button import MDButton, MDButtonText
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.card import MDCard
+from kivymd.uix.dialog import MDDialog
+from kivy.uix.image import Image
+from kivy.clock import Clock
+import os
+import webbrowser
 
 class InvestorApp(MDApp):
-    dialog = None
-    deposit_address = "0xfeff2067ef...971debbd"
-
     def build(self):
         self.theme_cls.theme_style = "Dark"
-        return Builder.load_string(KV)
-
-    def on_start(self):
-        self.populate_metrics()
-        Clock.schedule_interval(self.update_gold_price, 5)
-
-    def populate_metrics(self):
-        items = [
-            ("Current Amount", "$10,500.00", [0.3, 0.69, 0.31, 1]),
-            ("Deposit Amount", "$8,000.00", [0.13, 0.59, 0.95, 1]),
-            ("Live Equity", "$11,250.50", [0, 0.9, 1, 1]),
-            ("Live Withdrawal", "$2,500.00", [1, 0.6, 0, 1]),
-        ]
-        container = self.root.ids.metrics_box
-        for title, val, color in items:
-            card = Builder.load_string(f'''
-MDCard:
-    size_hint_y: None
-    height: dp(60)
-    padding: dp(10)
-    radius: [10]
-    md_bg_color: 0.13, 0.15, 0.19, 1
-
-    MDBoxLayout:
-        orientation: 'vertical'
-        MDLabel:
-            text: "{title}"
-            font_style: "Caption"
-            theme_text_color: "Custom"
-            text_color: 0.56, 0.59, 0.64, 1
-        MDLabel:
-            text: "{val}"
-            font_style: "Subtitle1"
-            bold: True
-            theme_text_color: "Custom"
-            text_color: {color}
-''')
-            container.add_widget(card)
-
-    def update_gold_price(self, dt):
-        try:
-            import random
-            price = 2400.00 + random.uniform(-2.5, 3.5)
-            self.root.ids.gold_price_lbl.text = f"${price:,.2f}"
-        except Exception:
-            pass
-
-    def show_deposit_dialog(self):
-        content = MDBoxLayout(orientation='vertical', spacing='12dp', size_hint_y=None, height='220dp')
+        self.theme_cls.primary_palette = "Blue"
         
-        # Load Image if available
-        qr_file = "qr_code.png" if os.path.exists("qr_code.png") else "qr_code.jpg"
-        if os.path.exists(qr_file):
-            img = FitImage(source=qr_file, size_hint=(None, None), size=('120dp', '120dp'), pos_hint={'center_x': 0.5})
-            content.add_widget(img)
+        self.main_box = MDBoxLayout(orientation='vertical', padding=15, spacing=15)
+        self.show_dashboard()
+        return self.main_box
+
+    def show_dashboard(self):
+        self.main_box.clear_widgets()
+        
+        # Title
+        title = MDLabel(
+            text="INVESTOR TRADER PANEL", 
+            halign="center", 
+            bold=True,
+            theme_text_color="Custom",
+            text_color=(0, 0.7, 1, 1)
+        )
+        self.main_box.add_widget(title)
+        
+        # Gold Card
+        gold_card = MDCard(orientation='vertical', padding=10, size_hint=(1, None), height="80dp", md_bg_color=(0.1, 0.1, 0.1, 1))
+        gold_title = MDLabel(text="GOLD (XAU/USD) REAL-TIME", halign="center", theme_text_color="Secondary")
+        self.gold_price = MDLabel(text="$2,401.66", halign="center", bold=True, theme_text_color="Custom", text_color=(1, 0.8, 0, 1))
+        gold_card.add_widget(gold_title)
+        gold_card.add_widget(self.gold_price)
+        self.main_box.add_widget(gold_card)
+
+        # 1. MINE BUTTON
+        mine_btn = MDButton(
+            MDButtonText(text="MINE (30s CHART)"),
+            size_hint=(1, None), 
+            height="50dp",
+            on_release=self.start_mining_screen
+        )
+        self.main_box.add_widget(mine_btn)
+
+        # Stats Rows
+        self.add_stat_row("Current Amount", "$10,500.00")
+        self.add_stat_row("Deposit Amount", "$8,000.00")
+        self.add_stat_row("Live Equity", "$11,250.50")
+        self.add_stat_row("Live Withdrawal", "$2,500.00")
+
+        # Bottom Buttons
+        btn_box = MDBoxLayout(spacing=10, size_hint=(1, None), height="50dp")
+        
+        add_funds_btn = MDButton(MDButtonText(text="Add Funds"), size_hint=(0.5, 1), on_release=self.show_qr_popup)
+        rules_btn = MDButton(MDButtonText(text="Rules & Legal PDF"), size_hint=(0.5, 1), on_release=self.open_pdf_file)
+        
+        btn_box.add_widget(add_funds_btn)
+        btn_box.add_widget(rules_btn)
+        self.main_box.add_widget(btn_box)
+
+    def add_stat_row(self, label_text, amount_text):
+        card = MDCard(padding=10, size_hint=(1, None), height="50dp", md_bg_color=(0.15, 0.15, 0.18, 1))
+        box = MDBoxLayout()
+        lbl = MDLabel(text=label_text, theme_text_color="Secondary")
+        val = MDLabel(text=amount_text, halign="right", bold=True, theme_text_color="Custom", text_color=(0, 0.8, 0.4, 1))
+        box.add_widget(lbl)
+        box.add_widget(val)
+        card.add_widget(box)
+        self.main_box.add_widget(card)
+
+    # 2. Add Funds Image/QR Fix
+    def show_qr_popup(self, instance):
+        img_path = os.path.join(os.path.dirname(__file__), 'qr_code.jpeg')
+        if os.path.exists(img_path):
+            content = Image(source=img_path)
         else:
-            lbl = MDLabel(text="[ Place qr_code.png in folder ]", halign="center", theme_text_color="Hint")
-            content.add_widget(lbl)
-
-        addr_lbl = MDLabel(text=self.deposit_address, font_style="Caption", halign="center")
-        content.add_widget(addr_lbl)
-
-        self.dialog = MDDialog(
-            title="DEPOSIT FUNDS",
+            content = MDLabel(text="qr_code.jpeg file not found in folder!", halign="center")
+            
+        dialog = MDDialog(
             type="custom",
             content_cls=content,
-            buttons=[
-                MDFlatButton(text="COPY ADDRESS", theme_text_color="Custom", text_color=(0, 0.9, 1, 1), on_release=self.copy_addr),
-                MDFlatButton(text="CLOSE", on_release=lambda x: self.dialog.dismiss())
-            ],
         )
-        self.dialog.open()
+        dialog.open()
 
-    def copy_addr(self, instance):
-        Clipboard.copy(self.deposit_address)
+    # 3. Rules PDF Opener Fix
+    def open_pdf_file(self, instance):
+        pdf_path = os.path.join(os.path.dirname(__file__), 'rules.pdf')
+        if os.path.exists(pdf_path):
+            webbrowser.open(pdf_path)
+        else:
+            print("rules.pdf file not found!")
 
-    def open_rules_pdf(self):
-        pdf_file = "rules.pdf"
-        if os.path.exists(pdf_file):
-            import webbrowser
-            webbrowser.open(os.path.abspath(pdf_file))
+    # 4. Mining Screen Logic (30 Seconds Timer)
+    def start_mining_screen(self, instance):
+        self.main_box.clear_widgets()
+        self.timer_seconds = 30
+        
+        self.status_label = MDLabel(
+            text="LIVE CANDLESTICK CHART MINING IN PROGRESS...", 
+            halign="center", 
+            theme_text_color="Custom",
+            text_color=(0, 0.8, 1, 1)
+        )
+        self.timer_label = MDLabel(
+            text=f"Time Remaining: {self.timer_seconds}s", 
+            halign="center", 
+            bold=True
+        )
+        
+        self.main_box.add_widget(self.status_label)
+        self.main_box.add_widget(self.timer_label)
+        
+        self.mining_event = Clock.schedule_interval(self.update_mining_timer, 1)
 
-if __name__ == "__main__":
+    def update_mining_timer(self, dt):
+        self.timer_seconds -= 1
+        self.timer_label.text = f"Time Remaining: {self.timer_seconds}s"
+        
+        if self.timer_seconds <= 0:
+            Clock.unschedule(self.mining_event)
+            self.show_mining_success()
+
+    def show_mining_success(self):
+        self.main_box.clear_widgets()
+        
+        success_label = MDLabel(
+            text="SUCCESS!\nYou Have Successfully Made $1", 
+            halign="center", 
+            bold=True,
+            theme_text_color="Custom",
+            text_color=(0, 1, 0, 1)
+        )
+        
+        back_btn = MDButton(
+            MDButtonText(text="Back to Dashboard"),
+            pos_hint={'center_x': 0.5},
+            on_release=lambda x: self.show_dashboard()
+        )
+        
+        self.main_box.add_widget(success_label)
+        self.main_box.add_widget(back_btn)
+
+if __name__ == '__main__':
     InvestorApp().run()
