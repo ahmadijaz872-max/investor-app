@@ -4,24 +4,32 @@ import time
 # Page Configuration
 st.set_page_config(page_title="Trade Panel", layout="centered", initial_sidebar_state="collapsed")
 
-# ULTRA-HIDE CSS (Streamlit Toolbar, Header, Footer, Menu sab HIDE kar dega)
+# FORCE-HIDE ALL STREAMLIT FOOTER & BADGES
 st.markdown("""
     <style>
-    /* Streamlit UI elements hide */
+    /* Hide top header and main menu */
     #MainMenu {visibility: hidden !important;}
     header {visibility: hidden !important;}
     footer {visibility: hidden !important;}
-    .stDecoration {display: none !important;}
-    [data-testid="stSidebar"] {display: none !important;}
-    [data-testid="stStatusWidget"] {display: none !important;}
     
-    /* Full screen container height & padding fix */
+    /* Hide Streamlit bottom badges, watermarks, and hosting banners */
+    [data-testid="stDecoration"] {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    .viewerBadge_container__163Vn {display: none !important;}
+    .viewerBadge_link__1S137 {display: none !important;}
+    div[class*="viewerBadge"] {display: none !important;}
+    div[class*="styles_viewerBadge"] {display: none !important;}
+    #root > div:nth-child(1) > div > div > div > div > section > div {padding-bottom: 0rem !important;}
+    
+    /* Hide any iframe or floating footer buttons */
+    iframe[title="data-testid"] {display: none !important;}
+    footer:after {content:''; visibility: hidden !important;}
+    
+    /* Container & background styling */
     .block-container {
         padding-top: 1rem !important;
         padding-bottom: 0rem !important;
     }
-    
-    /* App styling */
     .stApp { background-color: #121212 !important; }
     h2 { color: #00BFFF !important; text-align: center; }
     .stButton>button { width: 100%; border-radius: 8px; height: 3em; background-color: #008CBA; color: white; font-weight: bold; }
@@ -39,7 +47,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Mine Button
+# Mine Button Logic
 if 'mining' not in st.session_state:
     st.session_state.mining = False
 
