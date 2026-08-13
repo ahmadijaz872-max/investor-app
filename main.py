@@ -1,20 +1,34 @@
 import streamlit as st
 import time
-import os
 
-# Page Config (Full Screen App Feel)
-st.set_page_config(page_title="Investor Trader Panel", page_icon="📈", layout="centered")
+# Page Configuration
+st.set_page_config(page_title="Trade Panel", layout="centered", initial_sidebar_state="collapsed")
 
-# Custom CSS for Dark App Theme
+# ULTRA-HIDE CSS (Streamlit Toolbar, Header, Footer, Menu sab HIDE kar dega)
 st.markdown("""
     <style>
-    .main { background-color: #121212; }
-    h2 { color: #00BFFF; text-align: center; }
+    /* Streamlit UI elements hide */
+    #MainMenu {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    .stDecoration {display: none !important;}
+    [data-testid="stSidebar"] {display: none !important;}
+    [data-testid="stStatusWidget"] {display: none !important;}
+    
+    /* Full screen container height & padding fix */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+    }
+    
+    /* App styling */
+    .stApp { background-color: #121212 !important; }
+    h2 { color: #00BFFF !important; text-align: center; }
     .stButton>button { width: 100%; border-radius: 8px; height: 3em; background-color: #008CBA; color: white; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
-# App Title
+# Title
 st.markdown("<h2>INVESTOR TRADER PANEL</h2>", unsafe_allow_html=True)
 
 # Gold Price Card
@@ -25,7 +39,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# 1. Mine Button & 30s Mining Logic
+# Mine Button
 if 'mining' not in st.session_state:
     st.session_state.mining = False
 
@@ -68,20 +82,10 @@ st.write("---")
 
 # Bottom Buttons
 btn_col1, btn_col2 = st.columns(2)
-
 with btn_col1:
     if st.button("Add Funds"):
-        if os.path.exists("qr_code.jpeg"):
-            st.image("qr_code.jpeg", caption="Deposit Address & QR")
-        else:
-            st.error("qr_code.jpeg missing")
+        st.info("Deposit Address & QR Code option clicked.")
 
 with btn_col2:
-    if os.path.exists("rules.pdf"):
-        with open("rules.pdf", "rb") as pdf_file:
-            st.download_button(
-                label="Rules & Legal PDF",
-                data=pdf_file,
-                file_name="rules.pdf",
-                mime="application/pdf"
-            )
+    if st.button("Rules & Legal PDF"):
+        st.info("Rules and Legal terms document option clicked.")
